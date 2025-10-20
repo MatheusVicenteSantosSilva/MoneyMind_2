@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "postinstall": "chmod +x node_modules/.bin/*",
     "dev": "vite",
-   "build": "npx vite build",
+   "build": "node tools/generate-llms.js || true && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
