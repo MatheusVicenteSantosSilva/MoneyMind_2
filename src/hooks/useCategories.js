@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '@/context/AuthContext'; 
+import { useAuth } from '../context/AuthContext'; 
 
 // URL base do seu Backend
 const API_BASE_URL = 'http://localhost:3001/api/transactions'; 
