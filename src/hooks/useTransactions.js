@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useAuth } from '@/context/AuthContext'; 
+import { useAuth } from '../context/AuthContext'; 
 import { useToast } from '../components/ui/use-toast'; 
 
 const API_BASE_URL = 'http://localhost:3001/api/transactions';
