@@ -13,10 +13,14 @@ const transactionRoutes = require('./routes/transactions');
 // ... (Restante dos imports e config de PORT)
 
 // Middlewares
+// backend/server.js
+// ...
+// Middlewares
 app.use(cors({
-    origin: 'http://localhost:3000' 
+    origin: 'http://localhost:5173' 
 }));
 app.use(express.json());
+// ...
 
 // Usar Rotas
 app.use('/api/auth', authRoutes);         // Rota de autenticação
