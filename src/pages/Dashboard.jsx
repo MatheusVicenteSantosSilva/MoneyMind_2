@@ -1,3 +1,4 @@
+// pages/Dashboard.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
@@ -25,7 +26,6 @@ import { useToast } from '../components/ui/use-toast';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
-  
   const { transactions, isLoading, balance } = useTransactions(); 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -193,7 +193,7 @@ const Dashboard = () => {
             </Card>
           </motion.div>
 
-          {/* Transactions Section (Funcionalidades) */}
+          {/* Funcionalidades */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

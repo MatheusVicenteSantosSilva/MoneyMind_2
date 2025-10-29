@@ -38,10 +38,12 @@ app.use((req, res, next) => {
 // Importar rotas
 const authRoutes = require('./routes/auth');
 const transactionRoutes = require('./routes/transactions');
+const categoriesRouter = require('./routes/categories');
 
 // Usar Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/categories', categoriesRouter);
 
 // Rota de teste
 app.get('/api/health', (req, res) => {

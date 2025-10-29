@@ -11,11 +11,10 @@ const { v4: uuidv4 } = require('uuid');
 router.get('/', protect, async (req, res) => {
     try {
         const [rows] = await db.query(
-            `SELECT t.*, c.name AS category_name 
-             FROM transactions t
-             JOIN categories c ON t.category_id = c.id
-             WHERE t.user_id = ? 
-             ORDER BY t.transaction_date DESC, t.created_at DESC`, 
+            `SELECT * 
+             FROM transactions
+             WHERE user_id = ? 
+             ORDER BY transaction_date DESC, created_at DESC`, 
             [req.userId]
         );
         res.json(rows);
@@ -29,12 +28,12 @@ router.get('/', protect, async (req, res) => {
 // C - CREATE (POST /api/transactions)
 // --------------------------------------------------------
 router.post('/', protect, async (req, res) => {
-    const { type, description, amount, category_id, months } = req.body;
-    
+    const { type, description, amount, category_name, months, recurring_end_date, tags } = req.body;
+
     // Validações
-    if (!type || !description || !amount || !category_id) {
+    if (!type || !description || !amount || !category_name) {
         return res.status(400).json({ 
-            error: 'Campos obrigatórios: type, description, amount, category_id' 
+            error: 'Campos obrigatórios: type, description, amount, category_name' 
         });
     }
 
@@ -44,7 +43,7 @@ router.post('/', protect, async (req, res) => {
 
     const isRecurring = type === 'receita_continua' || type === 'debito_automatico';
     const numMonths = isRecurring ? (parseInt(months, 10) || 1) : 1;
-    
+
     if (numMonths < 1 || numMonths > 120) {
         return res.status(400).json({ error: 'Número de meses inválido (1-120)' });
     }
@@ -63,9 +62,20 @@ router.post('/', protect, async (req, res) => {
             transactionDate.setMonth(transactionDate.getMonth() + i); 
             
             const [result] = await connection.query(
-                `INSERT INTO transactions (user_id, type, description, amount, category_id, transaction_date, group_id) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [req.userId, type, description, parseFloat(amount), category_id, transactionDate, group_id]
+                `INSERT INTO transactions 
+                    (user_id, type, description, amount, category_name, transaction_date, group_id, recurring_end_date, tags, created_at) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+                [
+                    req.userId,
+                    type,
+                    description,
+                    parseFloat(amount),
+                    category_name,
+                    transactionDate,
+                    group_id,
+                    recurring_end_date || null,
+                    tags || null
+                ]
             );
             
             newTransactions.push({ 
@@ -74,9 +84,11 @@ router.post('/', protect, async (req, res) => {
                 type, 
                 description, 
                 amount: parseFloat(amount),
-                category_id,
+                category_name,
                 transaction_date: transactionDate, 
                 group_id, 
+                recurring_end_date: recurring_end_date || null,
+                tags: tags || null,
                 installment: `${i + 1}/${numMonths}`
             });
         }
@@ -101,7 +113,7 @@ router.post('/', protect, async (req, res) => {
 // --------------------------------------------------------
 router.put('/:id', protect, async (req, res) => {
     const transactionId = req.params.id;
-    const { description, amount, category_id } = req.body;
+    const { description, amount, category_name, recurring_end_date, tags } = req.body;
 
     try {
         const updateFields = [];
@@ -115,9 +127,17 @@ router.put('/:id', protect, async (req, res) => {
             updateFields.push('amount = ?');
             updateValues.push(parseFloat(amount));
         }
-        if (category_id) {
-            updateFields.push('category_id = ?');
-            updateValues.push(category_id);
+        if (category_name) {
+            updateFields.push('category_name = ?');
+            updateValues.push(category_name);
+        }
+        if (recurring_end_date) {
+            updateFields.push('recurring_end_date = ?');
+            updateValues.push(recurring_end_date);
+        }
+        if (tags) {
+            updateFields.push('tags = ?');
+            updateValues.push(tags);
         }
 
         if (updateFields.length === 0) {
